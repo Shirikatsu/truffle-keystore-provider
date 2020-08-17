@@ -10,13 +10,17 @@ const ethereumjsWallet = require("ethereumjs-wallet")
 const keythereum = require("keythereum")
 const prompt = require("prompt-sync")()
 
-function TruffleKeystoreProvider(dataDir, providerUrl) {
+function truffleKeystoreProvider(providerUrl, dataDir, password) {
     console.log(`Using keystore file: ${dataDir}`)
-    console.log(`Please unlock your account`)
-    const password = prompt("Password: ", { echo: "" })
+    let pass = password
+    if (typeof password == 'undefined' && !password) {
+        console.log(`Please unlock your account`)
+        pass = prompt("Password: ", { echo: "" })
+    }
+    
     const keyObj = JSON.parse(fs.readFileSync(dataDir))
 
-    this.wallet = ethereumjsWallet.fromPrivateKey(keythereum.recover(password, keyObj))
+    this.wallet = ethereumjsWallet.fromPrivateKey(keythereum.recover(pass, keyObj))
     this.address = keyObj.address
 
     this.engine = new ProviderEngine()
@@ -28,12 +32,28 @@ function TruffleKeystoreProvider(dataDir, providerUrl) {
     this.engine.start()
 }
 
-TruffleKeystoreProvider.prototype.sendAsync = function() {
+truffleKeystoreProvider.prototype.sendAsync = function() {
     this.engine.sendAsync.apply(this.engine, arguments)
 }
 
-TruffleKeystoreProvider.prototype.send = function() {
+truffleKeystoreProvider.prototype.send = function() {
     return this.engine.send.apply(this.engine, arguments)
 }
 
-module.exports = TruffleKeystoreProvider
+const memoizeKeystoreProviderCreator = () => {
+  let providers = {}
+
+  return (providerUrl, dataDir, password) => {
+    if (providerUrl in providers) {
+      return providers[providerUrl]
+    } else {
+      const provider = new truffleKeystoreProvider(providerUrl, dataDir, password)
+      providers[providerUrl] = provider
+      return provider
+    }
+  }
+}
+
+const CreateKeystoreProvider = memoizeKeystoreProviderCreator()
+
+module.exports = CreateKeystoreProvider

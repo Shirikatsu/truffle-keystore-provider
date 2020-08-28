@@ -11,14 +11,15 @@ const ethereumjsWallet = require("ethereumjs-wallet")
 const keythereum = require("keythereum")
 const prompt = require("prompt-sync")()
 
-function TruffleKeystoreProvider(providerUrl, dataDir, password) {
+class TruffleKeystoreProvider {
+  constructor(providerUrl, dataDir, password) {
     console.log(`Using keystore file: ${dataDir}`)
     let pass = password
     if (typeof password == 'undefined' && !password) {
-        console.log(`Please unlock your account`)
-        pass = prompt("Password: ", { echo: "" })
+      console.log(`Please unlock your account`)
+      pass = prompt("Password: ", { echo: "" })
     }
-    
+
     const keyObj = JSON.parse(fs.readFileSync(dataDir))
 
     this.wallet = ethereumjsWallet.fromPrivateKey(keythereum.recover(pass, keyObj))
@@ -30,19 +31,20 @@ function TruffleKeystoreProvider(providerUrl, dataDir, password) {
     this.engine.addProvider(new WalletSubprovider(this.wallet, {}))
     rpcProvider = new RpcSubprovider({ rpcUrl: providerUrl })
     rpcProvider.prototype.sendAsync = rpcProvider.prototype.send
-    this.engine.addProvider(rpcProvider);
+    this.engine.addProvider(rpcProvider)
     // Web3.providers.HttpProvider.prototype.sendAsync = Web3.providers.HttpProvider.prototype.send
     // process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
     // this.engine.addProvider(new ProviderSubprovider(new Web3.providers.HttpProvider(providerUrl)))
     this.engine.start()
+  }
+  sendAsync() {
+    this.engine.sendAsync.apply(this.engine, arguments)
+  }
+  send() {
+    return this.engine.sendAsync.apply(this.engine, arguments)
+  }
 }
 
-TruffleKeystoreProvider.prototype.sendAsync = function() {
-  this.engine.sendAsync.apply(this.engine, arguments);
-};
 
-TruffleKeystoreProvider.prototype.send = function() {
-  return this.engine.sendAsync.apply(this.engine, arguments);
-};
 
-module.exports = TruffleKeystoreProvider
+module.exports = TruffleKeystoreProvider;

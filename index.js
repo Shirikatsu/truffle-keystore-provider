@@ -29,7 +29,7 @@ class TruffleKeystoreProvider {
     this.engine.addProvider(new FiltersSubprovider())
     this.engine.addProvider(new NonceSubprovider())
     this.engine.addProvider(new WalletSubprovider(this.wallet, {}))
-    rpcProvider = new RpcSubprovider({ rpcUrl: providerUrl })
+    let rpcProvider = new RpcSubprovider({ rpcUrl: providerUrl })
     rpcProvider.prototype.sendAsync = rpcProvider.prototype.send
     this.engine.addProvider(rpcProvider)
     // Web3.providers.HttpProvider.prototype.sendAsync = Web3.providers.HttpProvider.prototype.send

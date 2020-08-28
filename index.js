@@ -40,7 +40,7 @@ TruffleKeystoreProvider.prototype.sendAsync = function() {
 };
 
 TruffleKeystoreProvider.prototype.send = function() {
-  return this.engine.sendAsync.apply(this.engine, arguments);
+  return this.engine.send.apply(this.engine, arguments);
 };
 
 module.exports = TruffleKeystoreProvider;

@@ -11,7 +11,7 @@ const ethereumjsWallet = require("ethereumjs-wallet")
 const keythereum = require("keythereum")
 const prompt = require("prompt-sync")()
 
-function truffleKeystoreProvider(providerUrl, dataDir, password) {
+function TruffleKeystoreProvider(providerUrl, dataDir, password) {
     console.log(`Using keystore file: ${dataDir}`)
     let pass = password
     if (typeof password == 'undefined' && !password) {
@@ -28,35 +28,21 @@ function truffleKeystoreProvider(providerUrl, dataDir, password) {
     this.engine.addProvider(new FiltersSubprovider())
     this.engine.addProvider(new NonceSubprovider())
     this.engine.addProvider(new WalletSubprovider(this.wallet, {}))
-    this.engine.addProvider(new RpcSubprovider({ rpcUrl: providerUrl }));
+    rpcProvider = new RpcSubprovider({ rpcUrl: providerUrl })
+    rpcProvider.prototype.sendAsync = rpcProvider.prototype.send
+    this.engine.addProvider(rpcProvider);
     // Web3.providers.HttpProvider.prototype.sendAsync = Web3.providers.HttpProvider.prototype.send
     // process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
     // this.engine.addProvider(new ProviderSubprovider(new Web3.providers.HttpProvider(providerUrl)))
     this.engine.start()
 }
 
-truffleKeystoreProvider.prototype.sendAsync = function() {
-    this.engine.sendAsync.apply(this.engine, arguments)
-}
+TruffleKeystoreProvider.prototype.sendAsync = function() {
+  this.engine.sendAsync.apply(this.engine, arguments);
+};
 
-truffleKeystoreProvider.prototype.send = function() {
-    return this.engine.sendAsync.apply(this.engine, arguments)
-}
+TruffleKeystoreProvider.prototype.send = function() {
+  return this.engine.sendAsync.apply(this.engine, arguments);
+};
 
-const memoizeKeystoreProviderCreator = () => {
-  let providers = {}
-
-  return (providerUrl, dataDir, password) => {
-    if (providerUrl in providers) {
-      return providers[providerUrl]
-    } else {
-      const provider = new truffleKeystoreProvider(providerUrl, dataDir, password)
-      providers[providerUrl] = provider
-      return provider
-    }
-  }
-}
-
-const CreateKeystoreProvider = memoizeKeystoreProviderCreator()
-
-module.exports = CreateKeystoreProvider
+module.exports = TruffleKeystoreProvider

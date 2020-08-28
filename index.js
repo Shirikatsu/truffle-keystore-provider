@@ -40,7 +40,7 @@ truffleKeystoreProvider.prototype.sendAsync = function() {
 }
 
 truffleKeystoreProvider.prototype.send = function() {
-    return this.engine.send.apply(this.engine, arguments)
+    return this.engine.sendAsync.apply(this.engine, arguments)
 }
 
 const memoizeKeystoreProviderCreator = () => {

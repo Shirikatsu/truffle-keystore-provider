@@ -5,6 +5,7 @@ const FiltersSubprovider = require("web3-provider-engine/subproviders/filters.js
 const WalletSubprovider = require("web3-provider-engine/subproviders/wallet.js")
 const ProviderSubprovider = require("web3-provider-engine/subproviders/provider.js")
 const NonceSubprovider = require("web3-provider-engine/subproviders/nonce-tracker.js")
+const RpcSubprovider = require('web3-provider-engine/subproviders/rpc');
 const Web3 = require("web3")
 const ethereumjsWallet = require("ethereumjs-wallet")
 const keythereum = require("keythereum")
@@ -27,8 +28,10 @@ function truffleKeystoreProvider(providerUrl, dataDir, password) {
     this.engine.addProvider(new FiltersSubprovider())
     this.engine.addProvider(new NonceSubprovider())
     this.engine.addProvider(new WalletSubprovider(this.wallet, {}))
-    Web3.providers.HttpProvider.prototype.sendAsync = Web3.providers.HttpProvider.prototype.send
-    this.engine.addProvider(new ProviderSubprovider(new Web3.providers.HttpProvider(providerUrl)))
+    this.engine.addProvider(new RpcSubprovider({ rpcUrl: providerUrl }));
+    // Web3.providers.HttpProvider.prototype.sendAsync = Web3.providers.HttpProvider.prototype.send
+    // process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
+    // this.engine.addProvider(new ProviderSubprovider(new Web3.providers.HttpProvider(providerUrl)))
     this.engine.start()
 }
 
